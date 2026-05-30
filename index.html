@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ocean Stopwatch</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    height:100vh;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(
+        to bottom,
+        #020111,
+        #071a3d,
+        #0b2c5d,
+        #03284a
+    );
+}
+
+/* STARS */
+.stars{
+    position:absolute;
+    width:100%;
+    height:100%;
+}
+
+.star{
+    position:absolute;
+    width:3px;
+    height:3px;
+    background:white;
+    border-radius:50%;
+    animation:starMove linear infinite;
+}
+
+@keyframes starMove{
+    from{
+        transform:translateY(100vh);
+        opacity:0;
+    }
+
+    20%{
+        opacity:1;
+    }
+
+    to{
+        transform:translateY(-100px);
+        opacity:0;
+    }
+}
+
+/* LIGHTNING */
+.lightning{
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:white;
+    opacity:0;
+    animation:flash 10s infinite;
+    pointer-events:none;
+}
+
+@keyframes flash{
+    0%,95%,100%{
+        opacity:0;
+    }
+
+    96%{
+        opacity:.25;
+    }
+
+    97%{
+        opacity:0;
+    }
+
+    98%{
+        opacity:.15;
+    }
+}
+
+/* OCEAN */
+.ocean{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:35%;
+}
+
+.wave{
+    position:absolute;
+    width:200%;
+    height:220px;
+    border-radius:45%;
+}
+
+.wave1{
+    background:rgba(0,150,255,.25);
+    bottom:0;
+    animation:waveMove 16s linear infinite;
+}
+
+.wave2{
+    background:rgba(0,220,255,.18);
+    bottom:20px;
+    animation:waveMove 11s linear infinite reverse;
+}
+
+.wave3{
+    background:rgba(0,255,255,.12);
+    bottom:40px;
+    animation:waveMove 8s linear infinite;
+}
+
+@keyframes waveMove{
+    from{
+        transform:translateX(0);
+    }
+
+    to{
+        transform:translateX(-50%);
+    }
+}
+
+/* STOPWATCH CARD */
+.container{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    z-index:10;
+
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(15px);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    padding:40px;
+    border-radius:25px;
+
+    text-align:center;
+
+    box-shadow:
+    0 0 25px rgba(0,255,255,.25);
+}
+
+h1{
+    color:white;
+    margin-bottom:20px;
+    text-shadow:0 0 20px cyan;
+}
+
+#display{
+    color:white;
+    font-size:3.2rem;
+    font-weight:bold;
+    margin-bottom:25px;
+
+    text-shadow:
+    0 0 10px cyan,
+    0 0 25px cyan;
+}
+
+button{
+    border:none;
+    outline:none;
+    cursor:pointer;
+
+    padding:12px 24px;
+    margin:5px;
+
+    border-radius:12px;
+
+    color:white;
+    background:rgba(0,255,255,.2);
+
+    transition:.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+    background:rgba(0,255,255,.5);
+}
+
+.start{
+    background:#00c853;
+}
+
+.stop{
+    background:#ff1744;
+}
+
+.reset{
+    background:#2979ff;
+}
+
+@media(max-width:700px){
+
+    #display{
+        font-size:2rem;
+    }
+
+    .container{
+        width:90%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="stars"></div>
+
+<div class="lightning"></div>
+
+<div class="ocean">
+    <div class="wave wave1"></div>
+    <div class="wave wave2"></div>
+    <div class="wave wave3"></div>
+</div>
+
+<div class="container">
+
+    <h1>Ocean Stopwatch</h1>
+
+    <div id="display">00:00:00:000</div>
+
+    <button class="start" onclick="startTimer()">Start</button>
+    <button class="stop" onclick="stopTimer()">Stop</button>
+    <button class="reset" onclick="resetTimer()">Reset</button>
+
+</div>
+
+<script>
+
+/* STARS */
+const stars = document.querySelector(".stars");
+
+for(let i=0;i<150;i++){
+
+    const star=document.createElement("div");
+
+    star.classList.add("star");
+
+    star.style.left=Math.random()*100+"%";
+
+    star.style.animationDuration=
+    (5+Math.random()*15)+"s";
+
+    star.style.animationDelay=
+    Math.random()*10+"s";
+
+    stars.appendChild(star);
+}
+
+/* STOPWATCH */
+
+let startTime = 0;
+let elapsedTime = 0;
+let timerInterval = null;
+
+function updateDisplay(){
+
+    const time = elapsedTime;
+
+    const hours =
+    Math.floor(time / 3600000);
+
+    const minutes =
+    Math.floor((time % 3600000) / 60000);
+
+    const seconds =
+    Math.floor((time % 60000) / 1000);
+
+    const milliseconds =
+    time % 1000;
+
+    document.getElementById("display").textContent =
+    String(hours).padStart(2,"0") + ":" +
+    String(minutes).padStart(2,"0") + ":" +
+    String(seconds).padStart(2,"0") + ":" +
+    String(milliseconds).padStart(3,"0");
+}
+
+function startTimer(){
+
+    if(timerInterval) return;
+
+    startTime =
+    Date.now() - elapsedTime;
+
+    timerInterval =
+    setInterval(() => {
+
+        elapsedTime =
+        Date.now() - startTime;
+
+        updateDisplay();
+
+    },10);
+}
+
+function stopTimer(){
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
+
+function resetTimer(){
+
+    stopTimer();
+
+    elapsedTime = 0;
+
+    updateDisplay();
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
