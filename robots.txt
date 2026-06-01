@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yashkumarbairwa.github.io/oceanstopwatch/sitemap.xml
